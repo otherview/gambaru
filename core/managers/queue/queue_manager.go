@@ -1,35 +1,37 @@
 package queue_manager
 
 import (
-	"fmt"
+	"github.com/otherview/gambaru/core"
 )
 
 type QueueManager struct {
-	queueItems []interface{}
+	queue *core.QueueInterface
 }
 
-func NewQueueManager() *QueueManager {
+func NewQueueManager(queue *core.QueueInterface) *QueueManager {
 	return &QueueManager{
-		queueItems: []interface{}{},
+		queue: queue,
 	}
 }
 
 func (state *QueueManager) ReadQueueItem() interface{} {
 
-	var queueItem interface{}
-	if len(state.queueItems) > 0 {
-		queueItem = state.queueItems[0]
-		state.queueItems = state.queueItems[1:]
+	queueItem, err := (*state.queue).Read()
+	if err != nil {
+		// TODO yep
+		panic(err)
 	}
-
-	fmt.Printf("Removed item from the Queue %v\n", queueItem)
 
 	return queueItem
 }
 
 func (state *QueueManager) WriteQueueItem(item interface{}) error {
 
-	state.queueItems = append(state.queueItems, item)
-	fmt.Printf("Added item to the Queue %v\n", item)
-	return nil
+	err := (*state.queue).Write(item)
+	if err != nil {
+		// TODO yep
+		panic(err)
+	}
+
+	return err
 }

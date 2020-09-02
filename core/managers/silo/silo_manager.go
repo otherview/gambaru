@@ -3,8 +3,6 @@ package silo_manager
 import (
 	"fmt"
 
-	"github.com/otherview/gambaru/core/queues"
-
 	queue_manager "github.com/otherview/gambaru/core/managers/queue"
 
 	"github.com/teamwork/deskapi/util/time"
@@ -42,14 +40,14 @@ func (state *SiloManager) CreateNewProcessor(msg *CreateProcessorMessage) (uuid.
 	return newProcID, nil
 }
 
-func (state *SiloManager) CreateNewQueue(queue *queues.QueueInterface, queueID uuid.UUID) (uuid.UUID, error) {
+func (state *SiloManager) CreateNewQueue(msg *CreateQueueMessage) (uuid.UUID, error) {
 
 	newQueueID := uuid.New()
-	if queueID != uuid.Nil {
-		newQueueID = queueID
+	if msg.ID != uuid.Nil {
+		newQueueID = msg.ID
 	}
 
-	props := actor.PropsFromProducer(func() actor.Actor { return queue_manager.NewQueueManager() })
+	props := actor.PropsFromProducer(func() actor.Actor { return queue_manager.NewQueueManager(msg.Queue) })
 	pid := actor.EmptyRootContext.Spawn(props)
 
 	state.queues[newQueueID] = pid

@@ -2,12 +2,11 @@ package silo_manager
 
 import (
 	"github.com/google/uuid"
-	"github.com/otherview/gambaru/core/processors"
-	"github.com/otherview/gambaru/core/queues"
+	"github.com/otherview/gambaru/core"
 )
 
 type CreateProcessorMessage struct {
-	Processor *processors.ProcessorInterface
+	Processor *core.ProcessorInterface
 	ID        uuid.UUID
 }
 type CreateProcessorOKMessage struct {
@@ -15,7 +14,7 @@ type CreateProcessorOKMessage struct {
 }
 
 type CreateQueueMessage struct {
-	Queue *queues.QueueInterface
+	Queue *core.QueueInterface
 	ID    uuid.UUID
 }
 type CreateQueueOKMessage struct {

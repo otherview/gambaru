@@ -16,7 +16,7 @@ func (state *SiloManager) Receive(context actor.Context) {
 		context.Respond(CreateProcessorOKMessage{PID: newProcessorID})
 
 	case *CreateQueueMessage:
-		newQueueID, _ := state.CreateNewQueue(msg.Queue, msg.ID)
+		newQueueID, _ := state.CreateNewQueue(msg)
 
 		fmt.Printf("Created Queue\n")
 		context.Respond(CreateQueueOKMessage{PID: newQueueID})

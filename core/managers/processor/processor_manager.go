@@ -4,21 +4,21 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/otherview/gambaru/core"
+
 	queue_manager "github.com/otherview/gambaru/core/managers/queue"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
-
-	"github.com/otherview/gambaru/core/processors"
 )
 
 type ProcessorManager struct {
-	processor   *processors.ProcessorInterface
+	processor   *core.ProcessorInterface
 	inputQueue  *actor.PID
 	outputQueue *actor.PID
 	stopChan    chan bool
 }
 
-func NewProcessorManager(processor *processors.ProcessorInterface) *ProcessorManager {
+func NewProcessorManager(processor *core.ProcessorInterface) *ProcessorManager {
 	return &ProcessorManager{
 		processor: processor,
 		stopChan:  make(chan bool),
