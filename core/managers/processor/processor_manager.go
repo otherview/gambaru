@@ -54,7 +54,7 @@ func (state *ProcessorManager) StartProcessor() error {
 					_, _ = actor.EmptyRootContext.RequestFuture(state.outputQueue, &queue_manager.WriteQueueItemMessage{QueueItem: responseFlowfile}, 5*time.Second).Result()
 				}
 			}
-			time.Sleep(time.Second)
+			//time.Sleep(time.Second)
 		}
 
 	}(state.stopChan)
