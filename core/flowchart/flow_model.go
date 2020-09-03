@@ -1,4 +1,4 @@
-package flow
+package flowchart
 
 import (
 	"github.com/google/uuid"

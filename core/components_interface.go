@@ -1,10 +1,12 @@
 package core
 
+import "github.com/otherview/gambaru/core/flowfile"
+
 type ProcessorInterface interface {
-	Execute(payload interface{}) (interface{}, error)
+	Execute(payload *flowfiles.Flowfile) (*flowfiles.Flowfile, error)
 }
 
 type QueueInterface interface {
-	Read() (interface{}, error)
-	Write(interface{}) error
+	Read() (*flowfiles.Flowfile, error)
+	Write(*flowfiles.Flowfile) error
 }

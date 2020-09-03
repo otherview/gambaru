@@ -1,4 +1,4 @@
-package flow
+package flowchart
 
 import (
 	"encoding/json"
@@ -13,12 +13,12 @@ import (
 	"github.com/otherview/gambaru/core/silo"
 )
 
-type Flow struct {
+type FlowChart struct {
 	flowStructure Structure
 }
 
-// NewFlow creates a Flow model from a string
-func NewFlow(flowJson string) *Flow {
+// NewFlow creates a FlowChart model from a string
+func NewFlow(flowJson string) *FlowChart {
 
 	var flow Structure
 	if err := json.Unmarshal([]byte(flowJson), &flow); err != nil {
@@ -26,11 +26,11 @@ func NewFlow(flowJson string) *Flow {
 		panic(err)
 	}
 
-	return &Flow{flowStructure: flow}
+	return &FlowChart{flowStructure: flow}
 }
 
 // CreateFlow creates the flow in the silo
-func (flow *Flow) CreateFlow(silo *silo.Silo) error {
+func (flow *FlowChart) CreateFlow(silo *silo.Silo) error {
 
 	if err := flow.validateComponentTypes(silo); err != nil {
 		return errors.Wrap(err, "failed to validate the flow")
@@ -58,7 +58,7 @@ func (flow *Flow) CreateFlow(silo *silo.Silo) error {
 	return nil
 }
 
-func (flow *Flow) validateComponentTypes(silo *silo.Silo) error {
+func (flow *FlowChart) validateComponentTypes(silo *silo.Silo) error {
 
 	for _, queue := range flow.flowStructure.Queues {
 		if queue.Type != "" {

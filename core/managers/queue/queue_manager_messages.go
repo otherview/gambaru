@@ -1,10 +1,12 @@
 package queue_manager
 
+import "github.com/otherview/gambaru/core/flowfile"
+
 type ReadQueueItemMessage struct{}
 type ReadQueueItemOKMessage struct {
-	Item interface{}
+	QueueItem *flowfiles.Flowfile
 }
 type WriteQueueItemMessage struct {
-	QueueItem interface{}
+	QueueItem *flowfiles.Flowfile
 }
 type WriteQueueItemOKMessage struct{}

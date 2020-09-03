@@ -2,7 +2,7 @@ package main
 
 import (
 	console "github.com/AsynkronIT/goconsole"
-	"github.com/otherview/gambaru/core/flow"
+	"github.com/otherview/gambaru/core/flowchart"
 	"github.com/otherview/gambaru/core/silo"
 )
 
@@ -53,7 +53,7 @@ func simple_flow_json() {
 `
 
 	silo := silo.NewSilo()
-	newFlow := flow.NewFlow(flowJson)
+	newFlow := flowchart.NewFlow(flowJson)
 	newFlow.CreateFlow(silo)
 
 	silo.Start()

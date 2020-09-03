@@ -1,14 +1,32 @@
 package processors
 
-type SimpleLogProcessor struct{}
+import (
+	"fmt"
 
-func NewSimpleLogProcessor() *SimpleLogProcessor {
-	return &SimpleLogProcessor{}
+	"github.com/otherview/gambaru/core/flowfile"
+	"github.com/otherview/gambaru/core/repository"
+)
+
+type SimpleLogProcessor struct {
+	repository *repository.Repository
 }
 
-func (processor *SimpleLogProcessor) Execute(payload interface{}) (interface{}, error) {
+func NewSimpleLogProcessor(repository *repository.Repository) *SimpleLogProcessor {
+	return &SimpleLogProcessor{repository: repository}
+}
 
-	//	fmt.Println(payload)
+func (processor *SimpleLogProcessor) Execute(flowfile *flowfiles.Flowfile) (*flowfiles.Flowfile, error) {
+
+	if flowfile == nil {
+		return nil, nil
+	}
+
+	data, err := processor.repository.Read(flowfile)
+	if err != nil {
+		// TODO yep
+		panic(err)
+	}
+	fmt.Println("Logging -> ", data)
 
 	return nil, nil
 }

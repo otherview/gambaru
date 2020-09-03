@@ -47,7 +47,7 @@ func (state *SiloManager) CreateNewQueue(msg *CreateQueueMessage) (uuid.UUID, er
 		newQueueID = msg.ID
 	}
 
-	props := actor.PropsFromProducer(func() actor.Actor { return queue_manager.NewQueueManager(msg.Queue) })
+	props := actor.PropsFromProducer(func() actor.Actor { return queue_manager.NewQueueManager(msg.Repository, msg.Queue) })
 	pid := actor.EmptyRootContext.Spawn(props)
 
 	state.queues[newQueueID] = pid

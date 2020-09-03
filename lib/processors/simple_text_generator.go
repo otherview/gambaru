@@ -2,18 +2,23 @@ package processors
 
 import (
 	"math/rand"
+
+	"fmt"
+
+	"github.com/otherview/gambaru/core/repository"
+
+	"github.com/otherview/gambaru/core/flowfile"
 )
 
 type SimpleTextGeneratorProcessor struct {
-	Input  chan []byte
-	Output chan []byte
+	repository *repository.Repository
 }
 
-func NewSimpleTextGeneratorProcessor() *SimpleTextGeneratorProcessor {
-	return &SimpleTextGeneratorProcessor{}
+func NewSimpleTextGeneratorProcessor(repository *repository.Repository) *SimpleTextGeneratorProcessor {
+	return &SimpleTextGeneratorProcessor{repository: repository}
 }
 
-func (processor *SimpleTextGeneratorProcessor) Execute(payload interface{}) (interface{}, error) {
+func (processor *SimpleTextGeneratorProcessor) Execute(flowfile *flowfiles.Flowfile) (*flowfiles.Flowfile, error) {
 
 	phrases := []string{
 		"A river a thousand paces wide stands upon somebody else's legs.",
@@ -24,5 +29,11 @@ func (processor *SimpleTextGeneratorProcessor) Execute(payload interface{}) (int
 		"Stupidity has its world rocked by trees (or rocks).",
 	}
 
-	return phrases[rand.Intn(len(phrases))], nil
+	newflowFile := flowfiles.NewFlowfile()
+
+	phrase := phrases[rand.Intn(len(phrases))]
+	processor.repository.Write(newflowFile, phrase)
+	fmt.Println("Created -> ", phrase)
+
+	return newflowFile, nil
 }

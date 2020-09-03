@@ -13,8 +13,9 @@ import (
 func (silo *Silo) CreateQueue(queue *core.QueueInterface, queueID uuid.UUID) uuid.UUID {
 
 	createdQueueMessage, err := silo.context.RequestFuture(silo.siloPID, &silo_manager.CreateQueueMessage{
-		Queue: queue,
-		ID:    queueID,
+		Queue:      queue,
+		ID:         queueID,
+		Repository: silo.repository,
 	}, 5*time.Second).Result()
 	if err != nil {
 		// TODO: yep

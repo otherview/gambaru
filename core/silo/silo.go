@@ -3,6 +3,8 @@ package silo
 import (
 	"time"
 
+	"github.com/otherview/gambaru/core/repository"
+
 	"github.com/otherview/gambaru/core"
 
 	"github.com/otherview/gambaru/lib/queues"
@@ -17,6 +19,7 @@ import (
 type Silo struct {
 	siloPID              *actor.PID
 	context              *actor.RootContext
+	repository           *repository.Repository
 	registeredProcessors map[string]core.ProcessorInterface
 	registeredQueues     map[string]core.QueueInterface
 }
@@ -30,9 +33,11 @@ func NewSilo() *Silo {
 	rootContext := actor.EmptyRootContext
 	pid := rootContext.Spawn(props)
 
+	newRepository := repository.NewRepository()
+
 	availableProcessors := map[string]core.ProcessorInterface{}
-	availableProcessors["SimpleLogProcessor"] = procs.NewSimpleLogProcessor()
-	availableProcessors["SimpleTextGeneratorProcessor"] = procs.NewSimpleTextGeneratorProcessor()
+	availableProcessors["SimpleLogProcessor"] = procs.NewSimpleLogProcessor(newRepository)
+	availableProcessors["SimpleTextGeneratorProcessor"] = procs.NewSimpleTextGeneratorProcessor(newRepository)
 
 	availableQueues := map[string]core.QueueInterface{}
 	availableQueues["SimpleQueue"] = queues.NewSimpleQueue()
@@ -42,6 +47,7 @@ func NewSilo() *Silo {
 		context:              rootContext,
 		registeredProcessors: availableProcessors,
 		registeredQueues:     availableQueues,
+		repository:           newRepository,
 	}
 }
 

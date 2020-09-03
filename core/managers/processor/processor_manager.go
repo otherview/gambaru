@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/otherview/gambaru/core/flowfile"
+
 	"github.com/otherview/gambaru/core"
 
 	queue_manager "github.com/otherview/gambaru/core/managers/queue"
@@ -34,16 +36,22 @@ func (state *ProcessorManager) StartProcessor() error {
 			case <-stopChan:
 				return
 			default:
-				var queueItem interface{}
+				var queueMsg interface{}
+				var responseFlowfile *flowfiles.Flowfile
+				var flowfile *flowfiles.Flowfile
 
 				if state.inputQueue != nil {
-					queueItem, _ = actor.EmptyRootContext.RequestFuture(state.inputQueue, &queue_manager.ReadQueueItemMessage{}, 5*time.Second).Result()
+					queueMsg, _ = actor.EmptyRootContext.RequestFuture(state.inputQueue, &queue_manager.ReadQueueItemMessage{}, 5*time.Second).Result()
 				}
 
-				responseData, _ := (*state.processor).Execute(queueItem)
+				if queueMsg != nil && queueMsg.(queue_manager.ReadQueueItemOKMessage).QueueItem != nil {
+					flowfile = queueMsg.(queue_manager.ReadQueueItemOKMessage).QueueItem
+				}
 
-				if state.outputQueue != nil {
-					_, _ = actor.EmptyRootContext.RequestFuture(state.outputQueue, &queue_manager.WriteQueueItemMessage{QueueItem: responseData}, 5*time.Second).Result()
+				responseFlowfile, _ = (*state.processor).Execute(flowfile)
+
+				if state.outputQueue != nil && responseFlowfile != nil {
+					_, _ = actor.EmptyRootContext.RequestFuture(state.outputQueue, &queue_manager.WriteQueueItemMessage{QueueItem: responseFlowfile}, 5*time.Second).Result()
 				}
 			}
 			time.Sleep(time.Second)
