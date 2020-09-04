@@ -1,6 +1,6 @@
-package queue_manager
+package queue_manager_actor
 
-import "github.com/otherview/gambaru/core/flowfile"
+import "github.com/otherview/gambaru/core/flowfiles"
 
 type ReadQueueItemMessage struct{}
 type ReadQueueItemOKMessage struct {

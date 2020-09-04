@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/otherview/gambaru/core/flowfile"
+	"github.com/otherview/gambaru/core/flowfiles"
 )
 
 type Repository struct {

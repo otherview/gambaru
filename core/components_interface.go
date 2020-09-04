@@ -1,9 +1,12 @@
 package core
 
-import "github.com/otherview/gambaru/core/flowfile"
+import (
+	"github.com/otherview/gambaru/core/flowfiles"
+	"github.com/otherview/gambaru/core/sessions"
+)
 
 type ProcessorInterface interface {
-	Execute(payload *flowfiles.Flowfile) (*flowfiles.Flowfile, error)
+	Execute(session *sessions.Session) error
 }
 
 type QueueInterface interface {

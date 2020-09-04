@@ -33,11 +33,9 @@ func NewSilo() *Silo {
 	rootContext := actor.EmptyRootContext
 	pid := rootContext.Spawn(props)
 
-	newRepository := repository.NewRepository()
-
 	availableProcessors := map[string]core.ProcessorInterface{}
-	availableProcessors["SimpleLogProcessor"] = procs.NewSimpleLogProcessor(newRepository)
-	availableProcessors["SimpleTextGeneratorProcessor"] = procs.NewSimpleTextGeneratorProcessor(newRepository)
+	availableProcessors["SimpleLogProcessor"] = procs.NewSimpleLogProcessor()
+	availableProcessors["SimpleTextGeneratorProcessor"] = procs.NewSimpleTextGeneratorProcessor()
 
 	availableQueues := map[string]core.QueueInterface{}
 	availableQueues["SimpleQueue"] = queues.NewSimpleQueue()
@@ -47,7 +45,6 @@ func NewSilo() *Silo {
 		context:              rootContext,
 		registeredProcessors: availableProcessors,
 		registeredQueues:     availableQueues,
-		repository:           newRepository,
 	}
 }
 

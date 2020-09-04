@@ -3,7 +3,7 @@ package queue_manager
 import (
 	"github.com/google/uuid"
 	"github.com/otherview/gambaru/core"
-	"github.com/otherview/gambaru/core/flowfile"
+	"github.com/otherview/gambaru/core/flowfiles"
 	"github.com/otherview/gambaru/core/repository"
 )
 

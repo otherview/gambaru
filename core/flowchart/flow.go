@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/otherview/gambaru/core"
-
 	"github.com/pkg/errors"
 
 	"github.com/otherview/gambaru/lib/queues"
@@ -37,11 +35,11 @@ func (flow *FlowChart) CreateFlow(silo *silo.Silo) error {
 	}
 
 	for _, queue := range flow.flowStructure.Queues {
-		var queueType core.QueueInterface
-		queueType = queues.NewSimpleQueue()
 
-		if queue.Type != "" {
-			queueType = silo.GetRegisteredQueue(queue.Type)
+		queueType := silo.GetRegisteredQueue(queue.Type)
+		if queueType == nil {
+			// TODO probably alert here
+			queueType = queues.NewSimpleQueue()
 		}
 
 		silo.CreateQueue(&queueType, queue.ID)

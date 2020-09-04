@@ -3,9 +3,11 @@ package silo_manager
 import (
 	"fmt"
 
+	"github.com/otherview/gambaru/core/repository"
+
 	queue_manager "github.com/otherview/gambaru/core/managers/queue"
 
-	"github.com/teamwork/deskapi/util/time"
+	"time"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	processor_manager "github.com/otherview/gambaru/core/managers/processor"
@@ -16,12 +18,14 @@ import (
 type SiloManager struct {
 	processors map[uuid.UUID]*actor.PID
 	queues     map[uuid.UUID]*actor.PID
+	repository *repository.Repository
 }
 
 func NewSiloManager() *SiloManager {
 	return &SiloManager{
 		processors: map[uuid.UUID]*actor.PID{},
 		queues:     map[uuid.UUID]*actor.PID{},
+		repository: repository.NewRepository(),
 	}
 }
 
@@ -32,7 +36,7 @@ func (state *SiloManager) CreateNewProcessor(msg *CreateProcessorMessage) (uuid.
 		newProcID = msg.ID
 	}
 
-	props := actor.PropsFromProducer(func() actor.Actor { return processor_manager.NewProcessorManager(msg.Processor) })
+	props := actor.PropsFromProducer(func() actor.Actor { return processor_manager.NewProcessorManager(msg.Processor, state.repository) })
 	pid := actor.EmptyRootContext.Spawn(props)
 
 	state.processors[newProcID] = pid

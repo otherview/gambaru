@@ -2,13 +2,10 @@ package processor_manager
 
 import (
 	"fmt"
-	"time"
-
-	"github.com/otherview/gambaru/core/flowfile"
 
 	"github.com/otherview/gambaru/core"
-
-	queue_manager "github.com/otherview/gambaru/core/managers/queue"
+	"github.com/otherview/gambaru/core/repository"
+	"github.com/otherview/gambaru/core/sessions"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 )
@@ -18,12 +15,14 @@ type ProcessorManager struct {
 	inputQueue  *actor.PID
 	outputQueue *actor.PID
 	stopChan    chan bool
+	repository  *repository.Repository
 }
 
-func NewProcessorManager(processor *core.ProcessorInterface) *ProcessorManager {
+func NewProcessorManager(processor *core.ProcessorInterface, repository *repository.Repository) *ProcessorManager {
 	return &ProcessorManager{
-		processor: processor,
-		stopChan:  make(chan bool),
+		processor:  processor,
+		repository: repository,
+		stopChan:   make(chan bool),
 	}
 }
 
@@ -36,23 +35,22 @@ func (state *ProcessorManager) StartProcessor() error {
 			case <-stopChan:
 				return
 			default:
-				var queueMsg interface{}
-				var responseFlowfile *flowfiles.Flowfile
-				var flowfile *flowfiles.Flowfile
 
-				if state.inputQueue != nil {
-					queueMsg, _ = actor.EmptyRootContext.RequestFuture(state.inputQueue, &queue_manager.ReadQueueItemMessage{}, 5*time.Second).Result()
-				}
+				_ = (*state.processor).Execute(sessions.NewSession(state.repository, state.inputQueue, state.outputQueue))
 
-				if queueMsg != nil && queueMsg.(queue_manager.ReadQueueItemOKMessage).QueueItem != nil {
-					flowfile = queueMsg.(queue_manager.ReadQueueItemOKMessage).QueueItem
-				}
-
-				responseFlowfile, _ = (*state.processor).Execute(flowfile)
-
-				if state.outputQueue != nil && responseFlowfile != nil {
-					_, _ = actor.EmptyRootContext.RequestFuture(state.outputQueue, &queue_manager.WriteQueueItemMessage{QueueItem: responseFlowfile}, 5*time.Second).Result()
-				}
+				//if state.inputQueue != nil {
+				//	queueMsg, _ = actor.EmptyRootContext.RequestFuture(state.inputQueue, &queue_manager.ReadQueueItemMessage{}, 5*time.Second).Result()
+				//}
+				//
+				//if queueMsg != nil && queueMsg.(queue_manager.ReadQueueItemOKMessage).QueueItem != nil {
+				//	flowfile = queueMsg.(queue_manager.ReadQueueItemOKMessage).QueueItem
+				//}
+				//
+				//
+				//
+				//if state.outputQueue != nil && responseFlowfile != nil {
+				//	_, _ = actor.EmptyRootContext.RequestFuture(state.outputQueue, &queue_manager.WriteQueueItemMessage{QueueItem: responseFlowfile}, 5*time.Second).Result()
+				//}
 			}
 			//time.Sleep(time.Second)
 		}

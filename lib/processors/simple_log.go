@@ -3,30 +3,28 @@ package processors
 import (
 	"fmt"
 
-	"github.com/otherview/gambaru/core/flowfile"
-	"github.com/otherview/gambaru/core/repository"
+	"github.com/otherview/gambaru/core/sessions"
 )
 
-type SimpleLogProcessor struct {
-	repository *repository.Repository
+type SimpleLogProcessor struct{}
+
+func NewSimpleLogProcessor() *SimpleLogProcessor {
+	return &SimpleLogProcessor{}
 }
 
-func NewSimpleLogProcessor(repository *repository.Repository) *SimpleLogProcessor {
-	return &SimpleLogProcessor{repository: repository}
-}
+func (processor *SimpleLogProcessor) Execute(session *sessions.Session) error {
 
-func (processor *SimpleLogProcessor) Execute(flowfile *flowfiles.Flowfile) (*flowfiles.Flowfile, error) {
-
+	flowfile := session.GetFlowfile()
 	if flowfile == nil {
-		return nil, nil
+		return nil
 	}
 
-	data, err := processor.repository.Read(flowfile)
+	data, err := session.ReadFlowfileData(flowfile)
 	if err != nil {
 		// TODO yep
 		panic(err)
 	}
 	fmt.Println("Logging -> ", data)
 
-	return nil, nil
+	return nil
 }

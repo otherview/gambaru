@@ -3,7 +3,7 @@ package queues
 import (
 	"fmt"
 
-	"github.com/otherview/gambaru/core/flowfile"
+	"github.com/otherview/gambaru/core/flowfiles"
 )
 
 type SimpleQueue struct {
@@ -23,7 +23,7 @@ func (state *SimpleQueue) Read() (*flowfiles.Flowfile, error) {
 		queueItem = state.queueItems[0]
 		state.queueItems = state.queueItems[1:]
 
-		fmt.Printf("Removed item from the Queue %v\n", queueItem)
+		//fmt.Printf("Removed item from the Queue %v\n", queueItem)
 	}
 
 	return queueItem, nil
@@ -36,6 +36,7 @@ func (state *SimpleQueue) Write(item *flowfiles.Flowfile) error {
 	}
 
 	state.queueItems = append(state.queueItems, item)
-	fmt.Printf("Added item to the Queue %v\n", item)
+	//fmt.Printf("Added item to the Queue %v\n", item)
+	fmt.Println("Items on the queue -> ", len(state.queueItems))
 	return nil
 }
