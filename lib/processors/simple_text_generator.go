@@ -34,6 +34,7 @@ func (processor *SimpleTextGeneratorProcessor) Execute(session *sessions.Session
 	fmt.Println("Created -> ", phrase)
 
 	_ = session.TransferFlowfile(newflowFile)
+	_ = session.Commit()
 
 	return nil
 }

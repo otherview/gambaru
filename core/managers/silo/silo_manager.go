@@ -3,6 +3,8 @@ package silo_manager
 import (
 	"fmt"
 
+	interface_repository "github.com/otherview/gambaru/core/interfaces/repository"
+
 	"github.com/otherview/gambaru/core/repository"
 
 	queue_manager "github.com/otherview/gambaru/core/managers/queue"
@@ -18,14 +20,14 @@ import (
 type SiloManager struct {
 	processors map[uuid.UUID]*actor.PID
 	queues     map[uuid.UUID]*actor.PID
-	repository *repository.Repository
+	repository interface_repository.RepositoryInterface
 }
 
 func NewSiloManager() *SiloManager {
 	return &SiloManager{
 		processors: map[uuid.UUID]*actor.PID{},
 		queues:     map[uuid.UUID]*actor.PID{},
-		repository: repository.NewRepository(),
+		repository: repository.NewMemoryRepository(),
 	}
 }
 

@@ -42,7 +42,7 @@ func (flow *FlowChart) CreateFlow(silo *silo.Silo) error {
 			queueType = queues.NewSimpleQueue()
 		}
 
-		silo.CreateQueue(&queueType, queue.ID)
+		silo.CreateQueue(queueType, queue.ID)
 	}
 
 	for _, processor := range flow.flowStructure.Processors {

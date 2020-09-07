@@ -10,3 +10,8 @@ type WriteQueueItemMessage struct {
 	QueueItem *flowfiles.Flowfile
 }
 type WriteQueueItemOKMessage struct{}
+
+type RemoveQueueItemMessage struct {
+	QueueItem *flowfiles.Flowfile
+}
+type RemoveQueueItemOKMessage struct{}

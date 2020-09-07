@@ -2,23 +2,25 @@ package processor_manager
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/otherview/gambaru/core"
-	"github.com/otherview/gambaru/core/repository"
+	interface_processor "github.com/otherview/gambaru/core/interfaces/processor"
+	interface_repository "github.com/otherview/gambaru/core/interfaces/repository"
+
 	"github.com/otherview/gambaru/core/sessions"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 )
 
 type ProcessorManager struct {
-	processor   *core.ProcessorInterface
+	processor   interface_processor.ProcessorInterface
 	inputQueue  *actor.PID
 	outputQueue *actor.PID
 	stopChan    chan bool
-	repository  *repository.Repository
+	repository  interface_repository.RepositoryInterface
 }
 
-func NewProcessorManager(processor *core.ProcessorInterface, repository *repository.Repository) *ProcessorManager {
+func NewProcessorManager(processor interface_processor.ProcessorInterface, repository interface_repository.RepositoryInterface) *ProcessorManager {
 	return &ProcessorManager{
 		processor:  processor,
 		repository: repository,
@@ -36,7 +38,7 @@ func (state *ProcessorManager) StartProcessor() error {
 				return
 			default:
 
-				_ = (*state.processor).Execute(sessions.NewSession(state.repository, state.inputQueue, state.outputQueue))
+				_ = state.processor.Execute(sessions.NewSession(state.repository, state.inputQueue, state.outputQueue))
 
 				//if state.inputQueue != nil {
 				//	queueMsg, _ = actor.EmptyRootContext.RequestFuture(state.inputQueue, &queue_manager.ReadQueueItemMessage{}, 5*time.Second).Result()
@@ -52,7 +54,7 @@ func (state *ProcessorManager) StartProcessor() error {
 				//	_, _ = actor.EmptyRootContext.RequestFuture(state.outputQueue, &queue_manager.WriteQueueItemMessage{QueueItem: responseFlowfile}, 5*time.Second).Result()
 				//}
 			}
-			//time.Sleep(time.Second)
+			time.Sleep(time.Second)
 		}
 
 	}(state.stopChan)

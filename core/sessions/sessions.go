@@ -3,24 +3,29 @@ package sessions
 import (
 	"time"
 
+	interface_repository "github.com/otherview/gambaru/core/interfaces/repository"
+
+	"github.com/pkg/errors"
+
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/otherview/gambaru/core/flowfiles"
 	queue_manager_messages "github.com/otherview/gambaru/core/managers/queue/messages"
-	"github.com/otherview/gambaru/core/repository"
 )
 
 type Session struct {
-	inputQueue  *actor.PID
-	outputQueue *actor.PID
-	repository  *repository.Repository
+	inputQueue      *actor.PID
+	outputQueue     *actor.PID
+	repository      interface_repository.RepositoryInterface
+	operationsQueue *operationQueue
 }
 
-func NewSession(repository *repository.Repository, inputQueue *actor.PID, outputQueue *actor.PID) *Session {
+func NewSession(repository interface_repository.RepositoryInterface, inputQueue *actor.PID, outputQueue *actor.PID) *Session {
 
 	return &Session{
-		repository:  repository,
-		inputQueue:  inputQueue,
-		outputQueue: outputQueue,
+		repository:      repository,
+		inputQueue:      inputQueue,
+		outputQueue:     outputQueue,
+		operationsQueue: newOperationQueue(),
 	}
 }
 
@@ -38,12 +43,12 @@ func (state *Session) GetFlowfile() *flowfiles.Flowfile {
 func (state *Session) TransferFlowfile(flowfile *flowfiles.Flowfile) error {
 
 	if state.outputQueue != nil && flowfile != nil {
-		_, _ = actor.EmptyRootContext.RequestFuture(state.outputQueue, &queue_manager_messages.WriteQueueItemMessage{QueueItem: flowfile}, 5*time.Second).Result()
+		state.operationsQueue.queueOperation(flowfile, state.outputQueue)
 	}
 	return nil
 }
 
-func (state *Session) ReadFlowfileData(flowfile *flowfiles.Flowfile) (interface{}, interface{}) {
+func (state *Session) ReadFlowfileData(flowfile *flowfiles.Flowfile) (interface{}, error) {
 
 	return state.repository.Read(flowfile)
 }
@@ -51,4 +56,37 @@ func (state *Session) ReadFlowfileData(flowfile *flowfiles.Flowfile) (interface{
 func (state *Session) WriteFlowfileData(flowfile *flowfiles.Flowfile, phrase string) error {
 
 	return state.repository.Write(flowfile, phrase)
+}
+
+func (state *Session) Commit() error {
+
+	var err error
+	operationExecuted := newOperationQueue()
+	for _, operation := range state.operationsQueue.queue {
+		_, err := actor.EmptyRootContext.RequestFuture(state.outputQueue, &queue_manager_messages.WriteQueueItemMessage{QueueItem: operation.flowfile}, 5*time.Second).Result()
+		if err != nil {
+			operationExecuted.queueOperation(operation.flowfile, state.outputQueue)
+			err = errors.Wrap(err, "failed to send message to Queue")
+			break
+		}
+	}
+
+	if operationExecuted.failed() {
+		// TODO this should be reversed
+		for _, operation := range operationExecuted.queue {
+			_, err := actor.EmptyRootContext.RequestFuture(state.outputQueue, &queue_manager_messages.RemoveQueueItemMessage{QueueItem: operation.flowfile}, 5*time.Second).Result()
+			if err != nil {
+				// TODO yep...
+				panic(err)
+			}
+
+			state.repository.Rollback(operation.flowfile)
+		}
+		return err
+	}
+
+	for _, operation := range state.operationsQueue.queue {
+		state.repository.Commit(operation.flowfile)
+	}
+	return err
 }

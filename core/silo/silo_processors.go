@@ -3,18 +3,18 @@ package silo
 import (
 	"time"
 
-	"github.com/otherview/gambaru/core"
+	interface_processor "github.com/otherview/gambaru/core/interfaces/processor"
 
 	"github.com/google/uuid"
 	silo_manager "github.com/otherview/gambaru/core/managers/silo"
 )
 
 // CreateProcessor returns the id of a created Processor
-func (silo *Silo) CreateProcessor(processor core.ProcessorInterface, processorID uuid.UUID) uuid.UUID {
+func (silo *Silo) CreateProcessor(processor interface_processor.ProcessorInterface, processorID uuid.UUID) uuid.UUID {
 
 	createdProcessorMessage, err := silo.context.RequestFuture(silo.siloPID,
 		&silo_manager.CreateProcessorMessage{
-			Processor: &processor,
+			Processor: processor,
 			ID:        processorID,
 		}, 5*time.Second).Result()
 	if err != nil {

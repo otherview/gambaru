@@ -3,9 +3,10 @@ package silo
 import (
 	"time"
 
-	"github.com/otherview/gambaru/core/repository"
+	interface_processor "github.com/otherview/gambaru/core/interfaces/processor"
+	interface_queue "github.com/otherview/gambaru/core/interfaces/queue"
 
-	"github.com/otherview/gambaru/core"
+	"github.com/otherview/gambaru/core/repository"
 
 	"github.com/otherview/gambaru/lib/queues"
 
@@ -19,9 +20,9 @@ import (
 type Silo struct {
 	siloPID              *actor.PID
 	context              *actor.RootContext
-	repository           *repository.Repository
-	registeredProcessors map[string]core.ProcessorInterface
-	registeredQueues     map[string]core.QueueInterface
+	repository           *repository.MemoryRepository
+	registeredProcessors map[string]interface_processor.ProcessorInterface
+	registeredQueues     map[string]interface_queue.QueueInterface
 }
 
 // NewSilo creates a new silo
@@ -33,11 +34,11 @@ func NewSilo() *Silo {
 	rootContext := actor.EmptyRootContext
 	pid := rootContext.Spawn(props)
 
-	availableProcessors := map[string]core.ProcessorInterface{}
+	availableProcessors := map[string]interface_processor.ProcessorInterface{}
 	availableProcessors["SimpleLogProcessor"] = procs.NewSimpleLogProcessor()
 	availableProcessors["SimpleTextGeneratorProcessor"] = procs.NewSimpleTextGeneratorProcessor()
 
-	availableQueues := map[string]core.QueueInterface{}
+	availableQueues := map[string]interface_queue.QueueInterface{}
 	availableQueues["SimpleQueue"] = queues.NewSimpleQueue()
 
 	return &Silo{
@@ -71,12 +72,12 @@ func (silo *Silo) Stop() {
 }
 
 // GetRegisteredProcessor returns a registered type of processor
-func (silo *Silo) GetRegisteredProcessor(processorTypeName string) core.ProcessorInterface {
+func (silo *Silo) GetRegisteredProcessor(processorTypeName string) interface_processor.ProcessorInterface {
 	return silo.registeredProcessors[processorTypeName]
 }
 
 // GetRegisteredQueue returns a registered type of queue
-func (silo *Silo) GetRegisteredQueue(queueTypeName string) core.QueueInterface {
+func (silo *Silo) GetRegisteredQueue(queueTypeName string) interface_queue.QueueInterface {
 
 	return silo.registeredQueues[queueTypeName]
 }

@@ -7,27 +7,47 @@ import (
 	"github.com/otherview/gambaru/core/flowfiles"
 )
 
-type Repository struct {
-	flowfileData map[uuid.UUID]interface{}
-	lock         sync.RWMutex
+type MemoryRepository struct {
+	flowfileData        map[uuid.UUID]interface{}
+	lockFlowfileData    sync.RWMutex
+	tmpFlowfileData     map[uuid.UUID]interface{}
+	lockTmpFlowfileDate sync.RWMutex
 }
 
-func NewRepository() *Repository {
+func NewMemoryRepository() *MemoryRepository {
 
-	return &Repository{flowfileData: map[uuid.UUID]interface{}{}}
+	return &MemoryRepository{flowfileData: map[uuid.UUID]interface{}{}, tmpFlowfileData: map[uuid.UUID]interface{}{}}
 }
 
-func (repo *Repository) Write(flowfile *flowfiles.Flowfile, value interface{}) error {
+func (repo *MemoryRepository) Write(flowfile *flowfiles.Flowfile, value interface{}) error {
 
-	repo.lock.Lock()
-	defer repo.lock.Unlock()
-	repo.flowfileData[flowfile.ID] = value
+	repo.lockTmpFlowfileDate.Lock()
+	defer repo.lockTmpFlowfileDate.Unlock()
+	repo.tmpFlowfileData[flowfile.ID] = value
 	return nil
 }
 
-func (repo *Repository) Read(flowfile *flowfiles.Flowfile) (interface{}, error) {
+func (repo *MemoryRepository) Read(flowfile *flowfiles.Flowfile) (interface{}, error) {
 
-	repo.lock.RLock()
-	defer repo.lock.RUnlock()
+	repo.lockFlowfileData.RLock()
+	defer repo.lockFlowfileData.RUnlock()
 	return repo.flowfileData[flowfile.ID], nil
+}
+
+func (repo *MemoryRepository) Commit(flowfile *flowfiles.Flowfile) error {
+
+	repo.lockFlowfileData.Lock()
+	repo.lockTmpFlowfileDate.Lock()
+	defer repo.lockTmpFlowfileDate.Unlock()
+	defer repo.lockFlowfileData.Unlock()
+	repo.flowfileData[flowfile.ID] = repo.tmpFlowfileData[flowfile.ID]
+	return nil
+}
+
+func (repo *MemoryRepository) Rollback(flowfile *flowfiles.Flowfile) error {
+
+	repo.lockTmpFlowfileDate.Lock()
+	defer repo.lockTmpFlowfileDate.Unlock()
+	delete(repo.flowfileData, flowfile.ID)
+	return nil
 }
