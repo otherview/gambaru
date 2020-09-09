@@ -39,20 +39,6 @@ func (state *ProcessorManager) StartProcessor() error {
 			default:
 
 				_ = state.processor.Execute(sessions.NewSession(state.repository, state.inputQueue, state.outputQueue))
-
-				//if state.inputQueue != nil {
-				//	queueMsg, _ = actor.EmptyRootContext.RequestFuture(state.inputQueue, &queue_manager.ReadQueueItemMessage{}, 5*time.Second).Result()
-				//}
-				//
-				//if queueMsg != nil && queueMsg.(queue_manager.ReadQueueItemOKMessage).QueueItem != nil {
-				//	flowfile = queueMsg.(queue_manager.ReadQueueItemOKMessage).QueueItem
-				//}
-				//
-				//
-				//
-				//if state.outputQueue != nil && responseFlowfile != nil {
-				//	_, _ = actor.EmptyRootContext.RequestFuture(state.outputQueue, &queue_manager.WriteQueueItemMessage{QueueItem: responseFlowfile}, 5*time.Second).Result()
-				//}
 			}
 			time.Sleep(time.Second)
 		}

@@ -8,22 +8,22 @@ import (
 )
 
 type MemoryRepository struct {
-	flowfileData        map[uuid.UUID]interface{}
+	flowfileData        map[uuid.UUID]*repositoryFlowfile
 	lockFlowfileData    sync.RWMutex
-	tmpFlowfileData     map[uuid.UUID]interface{}
+	tmpFlowfileData     map[uuid.UUID]*repositoryFlowfile
 	lockTmpFlowfileDate sync.RWMutex
 }
 
 func NewMemoryRepository() *MemoryRepository {
 
-	return &MemoryRepository{flowfileData: map[uuid.UUID]interface{}{}, tmpFlowfileData: map[uuid.UUID]interface{}{}}
+	return &MemoryRepository{flowfileData: map[uuid.UUID]*repositoryFlowfile{}, tmpFlowfileData: map[uuid.UUID]*repositoryFlowfile{}}
 }
 
-func (repo *MemoryRepository) Write(flowfile *flowfiles.Flowfile, value interface{}) error {
+func (repo *MemoryRepository) Write(flowfile *flowfiles.Flowfile, queueID uuid.UUID, value interface{}) error {
 
 	repo.lockTmpFlowfileDate.Lock()
 	defer repo.lockTmpFlowfileDate.Unlock()
-	repo.tmpFlowfileData[flowfile.ID] = value
+	repo.tmpFlowfileData[flowfile.ID] = newRepositoryFlowfile(flowfile.ID, queueID, value)
 	return nil
 }
 
@@ -31,7 +31,7 @@ func (repo *MemoryRepository) Read(flowfile *flowfiles.Flowfile) (interface{}, e
 
 	repo.lockFlowfileData.RLock()
 	defer repo.lockFlowfileData.RUnlock()
-	return repo.flowfileData[flowfile.ID], nil
+	return repo.flowfileData[flowfile.ID].Data, nil
 }
 
 func (repo *MemoryRepository) Commit(flowfile *flowfiles.Flowfile) error {
@@ -49,5 +49,13 @@ func (repo *MemoryRepository) Rollback(flowfile *flowfiles.Flowfile) error {
 	repo.lockTmpFlowfileDate.Lock()
 	defer repo.lockTmpFlowfileDate.Unlock()
 	delete(repo.flowfileData, flowfile.ID)
+	return nil
+}
+
+func (repo *MemoryRepository) Remove(flowfile *flowfiles.Flowfile) error {
+	repo.lockTmpFlowfileDate.Lock()
+	defer repo.lockTmpFlowfileDate.Unlock()
+	delete(repo.flowfileData, flowfile.ID)
+
 	return nil
 }

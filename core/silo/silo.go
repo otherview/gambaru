@@ -37,6 +37,7 @@ func NewSilo() *Silo {
 	availableProcessors := map[string]interface_processor.ProcessorInterface{}
 	availableProcessors["SimpleLogProcessor"] = procs.NewSimpleLogProcessor()
 	availableProcessors["SimpleTextGeneratorProcessor"] = procs.NewSimpleTextGeneratorProcessor()
+	availableProcessors["SimpleTextFinderProcessor"] = procs.NewSimpleTextFinderProcessor()
 
 	availableQueues := map[string]interface_queue.QueueInterface{}
 	availableQueues["SimpleQueue"] = queues.NewSimpleQueue()

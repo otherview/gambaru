@@ -3,6 +3,8 @@ package sessions
 import (
 	"time"
 
+	"github.com/google/uuid"
+
 	interface_repository "github.com/otherview/gambaru/core/interfaces/repository"
 
 	"github.com/pkg/errors"
@@ -55,7 +57,7 @@ func (state *Session) ReadFlowfileData(flowfile *flowfiles.Flowfile) (interface{
 
 func (state *Session) WriteFlowfileData(flowfile *flowfiles.Flowfile, phrase string) error {
 
-	return state.repository.Write(flowfile, phrase)
+	return state.repository.Write(flowfile, uuid.New(), phrase)
 }
 
 func (state *Session) Commit() error {
@@ -89,4 +91,8 @@ func (state *Session) Commit() error {
 		state.repository.Commit(operation.flowfile)
 	}
 	return err
+}
+
+func (state *Session) Remove(flowfile *flowfiles.Flowfile) error {
+	return state.repository.Remove(flowfile)
 }

@@ -27,7 +27,7 @@ func NewSiloManager() *SiloManager {
 	return &SiloManager{
 		processors: map[uuid.UUID]*actor.PID{},
 		queues:     map[uuid.UUID]*actor.PID{},
-		repository: repository.NewMemoryRepository(),
+		repository: repository.NewWALRepository(),
 	}
 }
 
