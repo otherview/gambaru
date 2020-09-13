@@ -3,6 +3,8 @@ package silo
 import (
 	"time"
 
+	"github.com/otherview/gambaru/core/models/flow_model"
+
 	interface_processor "github.com/otherview/gambaru/core/interfaces/processor"
 
 	"github.com/google/uuid"
@@ -10,12 +12,25 @@ import (
 )
 
 // CreateProcessor returns the id of a created Processor
-func (silo *Silo) CreateProcessor(processor interface_processor.ProcessorInterface, processorID uuid.UUID) uuid.UUID {
+func (silo *Silo) CreateProcessor(processor interface_processor.ProcessorInterface, processorID uuid.UUID, config *flow_model.Config) uuid.UUID {
+
+	// TODO theres a better way to do this
+	processorConfig := &flow_model.Config{
+		ExecutionTime: "1s",
+		SavePoint:     false,
+	}
+	if config != nil {
+		if config.ExecutionTime != "" {
+			processorConfig.ExecutionTime = config.ExecutionTime
+		}
+		processorConfig.SavePoint = config.SavePoint
+	}
 
 	createdProcessorMessage, err := silo.context.RequestFuture(silo.siloPID,
 		&silo_manager.CreateProcessorMessage{
 			Processor: processor,
 			ID:        processorID,
+			Config:    processorConfig,
 		}, 5*time.Second).Result()
 	if err != nil {
 		// TODO: yep

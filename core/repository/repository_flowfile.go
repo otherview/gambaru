@@ -2,7 +2,6 @@ package repository
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -32,16 +31,11 @@ func (f *repositoryFlowfile) Bytes() []byte {
 		panic(err)
 	}
 
-	fmt.Println(string(data))
 	return data
 }
 
 func (f *repositoryFlowfile) HasBeenWritten() bool {
 	return f.committed
-}
-
-func (f *repositoryFlowfile) Commit() {
-	f.committed = true
 }
 
 func (f *repositoryFlowfile) Remove() {

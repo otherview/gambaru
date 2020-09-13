@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/otherview/gambaru/core/models/flow_model"
+
 	"github.com/pkg/errors"
 
 	"github.com/otherview/gambaru/lib/queues"
@@ -12,13 +14,13 @@ import (
 )
 
 type FlowChart struct {
-	flowStructure Structure
+	flowStructure flow_model.Structure
 }
 
 // NewFlow creates a FlowChart model from a string
 func NewFlow(flowJson string) *FlowChart {
 
-	var flow Structure
+	var flow flow_model.Structure
 	if err := json.Unmarshal([]byte(flowJson), &flow); err != nil {
 		// TODO yep
 		panic(err)
@@ -39,7 +41,7 @@ func (flow *FlowChart) CreateFlow(silo *silo.Silo) error {
 		queueType := silo.GetRegisteredQueue(queue.Type)
 		if queueType == nil {
 			// TODO probably alert here
-			queueType = queues.NewSimpleQueue()
+			queueType = queues.NewBufferQueue()
 		}
 
 		silo.CreateQueue(queueType, queue.ID)
@@ -48,9 +50,14 @@ func (flow *FlowChart) CreateFlow(silo *silo.Silo) error {
 	for _, processor := range flow.flowStructure.Processors {
 		// TODO check if it exists :o
 		procType := silo.GetRegisteredProcessor(processor.Type)
-		silo.CreateProcessor(procType, processor.ID)
-		silo.AddInputQueue(processor.ID, processor.InputQueue)
-		silo.AddOutputQueue(processor.ID, processor.OutputQueue)
+		silo.CreateProcessor(procType, processor.ID, processor.Config)
+		for _, queue := range processor.InputQueues {
+			silo.AddInputQueue(processor.ID, queue)
+		}
+		for _, queue := range processor.OutputQueues {
+			silo.AddOutputQueue(processor.ID, queue)
+		}
+
 	}
 
 	return nil

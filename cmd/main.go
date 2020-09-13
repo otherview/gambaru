@@ -45,18 +45,46 @@ func simple_flow_json() {
     {
       "id": "3dea85cf-a8b0-472e-8efc-e7ae7f5dd767",
       "type": "SimpleLogProcessor",
-      "inputQueue": "a466f639-ac5a-4ccf-9d9d-a907faad47ae"
+	  "config": {
+	  	"executionTime": "10ms",
+		"savePoint": true
+	  },
+      "inputQueues": [
+		"a466f639-ac5a-4ccf-9d9d-a907faad47ae"
+		]
     },
     {
       "id": "a204925e-4299-4bf6-b83c-f34649d90cf8",
       "type": "SimpleTextGeneratorProcessor",
-      "outputQueue": "55590ec0-e5af-4969-8599-66f3dbdc2c8a"
+	  "config": {
+		"savePoint": true
+	  },
+      "outputQueues": [ 
+		"55590ec0-e5af-4969-8599-66f3dbdc2c8a" 
+		]
+    },
+	{
+      "id": "7030f293-f9d3-469b-b30c-6139bbe97512",
+      "type": "SimpleTextGeneratorProcessor",
+	  "config": {
+		"savePoint": true
+	  },
+      "outputQueues": [ 
+		"55590ec0-e5af-4969-8599-66f3dbdc2c8a" 
+	  ]
     },
 	{
       "id": "369e46f0-1f94-4f5d-91ab-5ae8af1f7c12",
       "type": "SimpleTextFinderProcessor",
-	  "inputQueue": "55590ec0-e5af-4969-8599-66f3dbdc2c8a",
-      "outputQueue": "a466f639-ac5a-4ccf-9d9d-a907faad47ae"
+	  "config": {
+	  	"executionTime": "10ms"
+	  },
+	  "inputQueues": [
+		"55590ec0-e5af-4969-8599-66f3dbdc2c8a"
+		],
+      "outputQueues": [
+		"a466f639-ac5a-4ccf-9d9d-a907faad47ae"
+		]
     }
   ]
 }

@@ -24,7 +24,19 @@ func (processor *SimpleLogProcessor) Execute(session *sessions.Session) error {
 		// TODO yep
 		panic(err)
 	}
-	fmt.Println("Logging -> ", data)
+	fmt.Println("Logging ->      ", flowfile.ID, data)
+
+	err = session.Remove(flowfile)
+	if err != nil {
+		// TODO yep
+		panic(err)
+	}
+
+	err = session.Commit()
+	if err != nil {
+		// TODO yep
+		panic(err)
+	}
 
 	return nil
 }

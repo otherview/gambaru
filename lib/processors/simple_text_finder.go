@@ -26,7 +26,7 @@ func (processor *SimpleTextFinderProcessor) Execute(session *sessions.Session) e
 		panic(err)
 	}
 
-	if strings.Contains(data.(string), "Whiskey") {
+	if data != nil && strings.Contains(data.(string), "Whiskey") {
 		err = session.Remove(flowfile)
 		if err != nil {
 			// TODO yep

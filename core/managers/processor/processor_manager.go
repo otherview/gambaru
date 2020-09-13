@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/otherview/gambaru/core/models/flow_model"
+
 	interface_processor "github.com/otherview/gambaru/core/interfaces/processor"
 	interface_repository "github.com/otherview/gambaru/core/interfaces/repository"
 
@@ -13,18 +15,29 @@ import (
 )
 
 type ProcessorManager struct {
-	processor   interface_processor.ProcessorInterface
-	inputQueue  *actor.PID
-	outputQueue *actor.PID
-	stopChan    chan bool
-	repository  interface_repository.RepositoryInterface
+	processor     interface_processor.ProcessorInterface
+	savePoint     bool
+	inputQueues   []*actor.PID
+	outputQueue   *actor.PID
+	stopChan      chan bool
+	repository    interface_repository.RepositoryInterface
+	executionTime time.Duration
 }
 
-func NewProcessorManager(processor interface_processor.ProcessorInterface, repository interface_repository.RepositoryInterface) *ProcessorManager {
+func NewProcessorManager(processor interface_processor.ProcessorInterface, config *flow_model.Config, repository interface_repository.RepositoryInterface) *ProcessorManager {
+
+	executionTime, err := time.ParseDuration(config.ExecutionTime)
+	if err != nil {
+		//TODO yep
+		panic(err)
+	}
+
 	return &ProcessorManager{
-		processor:  processor,
-		repository: repository,
-		stopChan:   make(chan bool),
+		processor:     processor,
+		savePoint:     config.SavePoint,
+		executionTime: executionTime,
+		repository:    repository,
+		stopChan:      make(chan bool),
 	}
 }
 
@@ -37,10 +50,12 @@ func (state *ProcessorManager) StartProcessor() error {
 			case <-stopChan:
 				return
 			default:
-
-				_ = state.processor.Execute(sessions.NewSession(state.repository, state.inputQueue, state.outputQueue))
+				newSession := sessions.NewSession(state.repository, state.inputQueues, state.outputQueue, state.savePoint)
+				_ = state.processor.Execute(newSession)
+				//TODO ensure that all flowfiles read/written are pushed or removed
+				//newSession.VerifyCleanSession()
 			}
-			time.Sleep(time.Second)
+			time.Sleep(state.executionTime)
 		}
 
 	}(state.stopChan)
@@ -57,7 +72,7 @@ func (state *ProcessorManager) StopProcessor() error {
 
 func (state *ProcessorManager) AddInputQueue(queuePID *actor.PID) error {
 
-	state.inputQueue = queuePID
+	state.inputQueues = append(state.inputQueues, queuePID)
 	return nil
 }
 

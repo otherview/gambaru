@@ -37,7 +37,7 @@ func (processor *SimpleTextGeneratorProcessor) Execute(session *sessions.Session
 	newflowFile := flowfiles.NewFlowfile()
 
 	_ = session.WriteFlowfileData(newflowFile, phrase)
-	fmt.Println("Created -> ", phrase)
+	fmt.Println("Created ->   ", newflowFile.ID, phrase)
 
 	_ = session.TransferFlowfile(newflowFile)
 	_ = session.Commit()

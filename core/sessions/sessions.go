@@ -15,18 +15,20 @@ import (
 )
 
 type Session struct {
-	inputQueue      *actor.PID
+	inputQueues     []*actor.PID
 	outputQueue     *actor.PID
 	repository      interface_repository.RepositoryInterface
 	operationsQueue *operationQueue
+	savePoint       bool
 }
 
-func NewSession(repository interface_repository.RepositoryInterface, inputQueue *actor.PID, outputQueue *actor.PID) *Session {
+func NewSession(repository interface_repository.RepositoryInterface, inputQueues []*actor.PID, outputQueue *actor.PID, savePoint bool) *Session {
 
 	return &Session{
 		repository:      repository,
-		inputQueue:      inputQueue,
+		inputQueues:     inputQueues,
 		outputQueue:     outputQueue,
+		savePoint:       savePoint,
 		operationsQueue: newOperationQueue(),
 	}
 }
@@ -34,9 +36,13 @@ func NewSession(repository interface_repository.RepositoryInterface, inputQueue 
 func (state *Session) GetFlowfile() *flowfiles.Flowfile {
 	var queuedFlowfile *flowfiles.Flowfile
 
-	queueMsg, _ := actor.EmptyRootContext.RequestFuture(state.inputQueue, &queue_manager_messages.ReadQueueItemMessage{}, 5*time.Second).Result()
-	if queueMsg != nil && queueMsg.(queue_manager_messages.ReadQueueItemOKMessage).QueueItem != nil {
-		queuedFlowfile = queueMsg.(queue_manager_messages.ReadQueueItemOKMessage).QueueItem
+	//TODO add some logic around which queue to get from
+
+	for _, queue := range state.inputQueues {
+		queueMsg, _ := actor.EmptyRootContext.RequestFuture(queue, &queue_manager_messages.ReadQueueItemMessage{}, 5*time.Second).Result()
+		if queueMsg != nil && queueMsg.(queue_manager_messages.ReadQueueItemOKMessage).QueueItem != nil {
+			return queueMsg.(queue_manager_messages.ReadQueueItemOKMessage).QueueItem
+		}
 	}
 
 	return queuedFlowfile
@@ -65,7 +71,17 @@ func (state *Session) Commit() error {
 	var err error
 	operationExecuted := newOperationQueue()
 	for _, operation := range state.operationsQueue.queue {
-		_, err := actor.EmptyRootContext.RequestFuture(state.outputQueue, &queue_manager_messages.WriteQueueItemMessage{QueueItem: operation.flowfile}, 5*time.Second).Result()
+		// Commits the data to be available + savepointed
+		err = state.repository.Commit(operation.flowfile, state.savePoint)
+		if err != nil {
+			operationExecuted.queueOperation(operation.flowfile, state.outputQueue)
+			err = errors.Wrap(err, "failed to send message to Queue")
+			break
+		}
+
+		// Notifies the queue that new events are ready + data is ready
+
+		_, err = actor.EmptyRootContext.RequestFuture(state.outputQueue, &queue_manager_messages.WriteQueueItemMessage{QueueItem: operation.flowfile}, 5*time.Second).Result()
 		if err != nil {
 			operationExecuted.queueOperation(operation.flowfile, state.outputQueue)
 			err = errors.Wrap(err, "failed to send message to Queue")
@@ -87,9 +103,6 @@ func (state *Session) Commit() error {
 		return err
 	}
 
-	for _, operation := range state.operationsQueue.queue {
-		state.repository.Commit(operation.flowfile)
-	}
 	return err
 }
 

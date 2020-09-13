@@ -4,12 +4,14 @@ import (
 	"github.com/google/uuid"
 	interface_processor "github.com/otherview/gambaru/core/interfaces/processor"
 	interface_queue "github.com/otherview/gambaru/core/interfaces/queue"
+	"github.com/otherview/gambaru/core/models/flow_model"
 	"github.com/otherview/gambaru/core/repository"
 )
 
 type CreateProcessorMessage struct {
 	Processor interface_processor.ProcessorInterface
 	ID        uuid.UUID
+	Config    *flow_model.Config
 }
 type CreateProcessorOKMessage struct {
 	PID uuid.UUID

@@ -1,11 +1,14 @@
 package repository
 
 import (
+	"fmt"
 	"sync"
+
+	"github.com/otherview/gambaru/core/repository/provider"
+	"github.com/tidwall/wal"
 
 	"github.com/google/uuid"
 	"github.com/otherview/gambaru/core/flowfiles"
-	"github.com/tidwall/wal"
 )
 
 type WALRepository struct {
@@ -14,6 +17,7 @@ type WALRepository struct {
 	tmpFlowfileData     map[uuid.UUID]*repositoryFlowfile
 	lockTmpFlowfileDate sync.RWMutex
 	lockWriterPosition  sync.RWMutex
+	repoProvider        *provider.MemoryRepoProvider
 	writerPosition      uint64
 	writerPositionMap   map[uuid.UUID]uint64
 	logWriter           *wal.Log
@@ -21,19 +25,10 @@ type WALRepository struct {
 
 func NewWALRepository() *WALRepository {
 
-	// open a new log file
-	logWriter, err := wal.Open("writelogs", nil)
-	if err != nil {
-		// TODO Yep
-		panic(err)
-	}
-
 	return &WALRepository{
-		flowfileData:      map[uuid.UUID]*repositoryFlowfile{},
-		tmpFlowfileData:   map[uuid.UUID]*repositoryFlowfile{},
-		writerPosition:    uint64(0),
-		writerPositionMap: map[uuid.UUID]uint64{},
-		logWriter:         logWriter,
+		flowfileData:    map[uuid.UUID]*repositoryFlowfile{},
+		tmpFlowfileData: map[uuid.UUID]*repositoryFlowfile{},
+		repoProvider:    provider.NewMemoryRepoProvider(),
 	}
 }
 
@@ -50,12 +45,15 @@ func (repo *WALRepository) Read(flowfile *flowfiles.Flowfile) (interface{}, erro
 	repo.lockFlowfileData.RLock()
 	defer repo.lockFlowfileData.RUnlock()
 	if _, ok := repo.flowfileData[flowfile.ID]; ok {
+		if repo.flowfileData[flowfile.ID] == nil {
+			panic("derp")
+		}
 		return repo.flowfileData[flowfile.ID].Data, nil
 	}
 	return nil, nil
 }
 
-func (repo *WALRepository) Commit(flowfile *flowfiles.Flowfile) error {
+func (repo *WALRepository) Commit(flowfile *flowfiles.Flowfile, savepoint bool) error {
 
 	var err error
 
@@ -65,14 +63,13 @@ func (repo *WALRepository) Commit(flowfile *flowfiles.Flowfile) error {
 	defer repo.lockFlowfileData.Unlock()
 	repo.flowfileData[flowfile.ID] = repo.tmpFlowfileData[flowfile.ID]
 
-	if !repo.flowfileData[flowfile.ID].HasBeenWritten() {
-
-		err = repo.logWriter.Write(repo.newPosition(flowfile.ID), repo.flowfileData[flowfile.ID].Bytes())
+	if savepoint {
+		err := repo.repoProvider.Write(flowfile.ID, repo.flowfileData[flowfile.ID].Bytes())
 		if err != nil {
 			// TODO Yep
+			fmt.Println("derp")
 			panic(err)
 		}
-		repo.flowfileData[flowfile.ID].Commit()
 	}
 
 	return err
@@ -91,27 +88,11 @@ func (repo *WALRepository) Remove(flowfile *flowfiles.Flowfile) error {
 	defer repo.lockTmpFlowfileDate.Unlock()
 	delete(repo.flowfileData, flowfile.ID)
 
-	if pos, ok := repo.writerPositionMap[flowfile.ID]; ok {
-		err := repo.logWriter.TruncateBack(pos)
-		if err != nil {
-			// TODO Yep
-			panic(err)
-		}
-		err = repo.logWriter.TruncateFront(pos)
-		if err != nil {
-			// TODO Yep
-			panic(err)
-		}
+	err := repo.repoProvider.Remove(flowfile.ID)
+	if err != nil {
+		// TODO Yep
+		fmt.Println("derp")
+		panic(err)
 	}
-
 	return nil
-}
-
-func (repo *WALRepository) newPosition(flowfileID uuid.UUID) uint64 {
-	repo.lockWriterPosition.Lock()
-	defer repo.lockWriterPosition.Unlock()
-	repo.writerPosition += 1
-	repo.writerPositionMap[flowfileID] = repo.writerPosition
-
-	return repo.writerPosition
 }

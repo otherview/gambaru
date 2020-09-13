@@ -38,7 +38,9 @@ func (state *SiloManager) CreateNewProcessor(msg *CreateProcessorMessage) (uuid.
 		newProcID = msg.ID
 	}
 
-	props := actor.PropsFromProducer(func() actor.Actor { return processor_manager.NewProcessorManager(msg.Processor, state.repository) })
+	props := actor.PropsFromProducer(func() actor.Actor {
+		return processor_manager.NewProcessorManager(msg.Processor, msg.Config, state.repository)
+	})
 	pid := actor.EmptyRootContext.Spawn(props)
 
 	state.processors[newProcID] = pid
@@ -94,7 +96,7 @@ func (state *SiloManager) AddInputQueue(processorID uuid.UUID, queueID uuid.UUID
 		&processor_manager.AddInputQueue{QueuePID: queuePID},
 		5*time.Second).Result()
 
-	fmt.Printf("Started Processor %v\n", processorID)
+	fmt.Printf("Added Input Queue %v to Processor %v\n", queueID, processorID)
 
 	return nil
 }
@@ -109,7 +111,7 @@ func (state *SiloManager) AddOutputQueue(processorID uuid.UUID, queueID uuid.UUI
 		&processor_manager.AddOutputQueue{QueuePID: queuePID},
 		5*time.Second).Result()
 
-	fmt.Printf("Started Processor %v\n", processorID)
+	fmt.Printf("Added Output Queue %v to Processor %v\n", queueID, processorID)
 
 	return nil
 

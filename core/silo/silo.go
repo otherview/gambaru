@@ -40,7 +40,7 @@ func NewSilo() *Silo {
 	availableProcessors["SimpleTextFinderProcessor"] = procs.NewSimpleTextFinderProcessor()
 
 	availableQueues := map[string]interface_queue.QueueInterface{}
-	availableQueues["SimpleQueue"] = queues.NewSimpleQueue()
+	availableQueues["SimpleQueue"] = queues.NewBufferQueue()
 
 	return &Silo{
 		siloPID:              pid,
