@@ -20,7 +20,7 @@ type CreateProcessorOKMessage struct {
 type CreateQueueMessage struct {
 	Queue      interface_queue.QueueInterface
 	ID         uuid.UUID
-	Repository *repository.MemoryRepository
+	Repository *repository.WALRepository
 }
 type CreateQueueOKMessage struct {
 	PID uuid.UUID

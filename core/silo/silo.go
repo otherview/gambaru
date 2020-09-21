@@ -20,7 +20,7 @@ import (
 type Silo struct {
 	siloPID              *actor.PID
 	context              *actor.RootContext
-	repository           *repository.MemoryRepository
+	repository           *repository.WALRepository
 	registeredProcessors map[string]interface_processor.ProcessorInterface
 	registeredQueues     map[string]interface_queue.QueueInterface
 }

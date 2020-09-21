@@ -11,22 +11,6 @@ func main() {
 	simple_flow_json()
 }
 
-func simple_flow() {
-	//silo := silo.NewSilo()
-	//queueID := silo.CreateQueue(queues.NewSimpleQueue(), uuid.Nil)
-	//
-	//textGenProcessorID := silo.CreateProcessor(processors.NewSimpleTextGeneratorProcessor(), uuid.Nil)
-	//_ = silo.AddOutputQueue(textGenProcessorID, queueID)
-	//
-	//logProcessorID := silo.CreateProcessor(processors.NewSimpleLogProcessor(), uuid.Nil)
-	//_ = silo.AddInputQueue(logProcessorID, queueID)
-	//
-	//silo.Start()
-	//console.ReadLine()
-	//silo.Stop()
-	//console.ReadLine()
-}
-
 func simple_flow_json() {
 
 	var flowJson = `
@@ -91,8 +75,11 @@ func simple_flow_json() {
 `
 
 	silo := silo.NewSilo()
-	newFlow := flowchart.NewFlow(flowJson)
-	newFlow.CreateFlow(silo)
+	newFlow := flowchart.NewFlow(silo)
+	if err := newFlow.LoadJson(flowJson); err != nil {
+		panic(err)
+	}
+	newFlow.CreateFlow()
 
 	silo.Start()
 	console.ReadLine()
