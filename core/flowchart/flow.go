@@ -91,6 +91,25 @@ func (flow *FlowChart) CreateQueue(queue *flow_model.Queue) error {
 	return nil
 }
 
+// SaveJson exports the silo flow to a json format
+func (flow *FlowChart) SaveJson() (*flow_model.Structure, error) {
+
+	processors, err := flow.silo.ExportProcessors()
+	if err != nil {
+		return nil, err
+	}
+
+	//queues, err := flow.silo.ExportQueues()
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	return &flow_model.Structure{
+		//Queues:     queues,
+		Processors: processors,
+	}, nil
+}
+
 func (flow *FlowChart) validateProcessorType(proc *flow_model.Processor) error {
 	if proc.Type != "" {
 		if flow.silo.GetRegisteredProcessor(proc.Type) == nil {

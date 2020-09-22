@@ -14,12 +14,21 @@ func (state *ProcessorManager) Receive(context actor.Context) {
 		context.Respond(StopProcessorOKMessage{})
 
 	case *AddInputQueue:
-		_ = state.AddInputQueue(msg.QueuePID)
+		_ = state.AddInputQueue(msg)
 		context.Respond(AddInputOKQueue{})
 
 	case *AddOutputQueue:
-		_ = state.AddOutputQueue(msg.QueuePID)
+		_ = state.AddOutputQueue(msg)
 		context.Respond(AddOutputOKQueue{})
+
+	case *GetProcessorInfoMessage:
+		procID, procType, inputQueues, outputQueues := state.GetProcessorInfo()
+		context.Respond(GetProcessorInfoOKMessage{
+			ID:           procID,
+			Type:         procType,
+			InputQueues:  inputQueues,
+			OutputQueues: outputQueues,
+		})
 	}
 
 }

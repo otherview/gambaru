@@ -3,6 +3,8 @@ package silo
 import (
 	"time"
 
+	processor_manager "github.com/otherview/gambaru/core/managers/processor"
+
 	"github.com/otherview/gambaru/core/models/flow_model"
 
 	interface_processor "github.com/otherview/gambaru/core/interfaces/processor"
@@ -91,4 +93,58 @@ func (silo *Silo) AddInputQueue(processorID uuid.UUID, queueID uuid.UUID) error 
 	}
 
 	return nil
+}
+
+func (silo *Silo) ExportProcessors() (flow_model.Processors, error) {
+
+	// figure out what processors are created
+	getProcessorsRsp, err := silo.context.RequestFuture(silo.siloPID,
+		&silo_manager.GetProcessorsMessage{}, 5*time.Second).Result()
+
+	if err != nil {
+		// TODO: yep
+		panic(err)
+	}
+
+	processorsOKMsg, ok := getProcessorsRsp.(silo_manager.GetProcessorsOKMessage)
+	if !ok {
+		// TODO make an error definition here between silo and service
+		return nil, err
+	}
+
+	// get the info of each and build the structure
+	processors := flow_model.Processors{}
+	for _, actorID := range processorsOKMsg.Processors {
+		getProcInfoRsp, err := silo.context.RequestFuture(actorID,
+			&processor_manager.GetProcessorInfoMessage{}, 5*time.Second).Result()
+
+		if err != nil {
+			//TODO probably needs more stuff here
+			return nil, err
+		}
+
+		getProcInfoOKMsg, ok := getProcInfoRsp.(processor_manager.GetProcessorInfoOKMessage)
+		if !ok {
+			// TODO make an error definition here between silo and service
+			return nil, err
+		}
+
+		var inputQueues []uuid.UUID
+		var outputQueues []uuid.UUID
+
+		for _, q := range getProcInfoOKMsg.InputQueues {
+			inputQueues = append(inputQueues, q.ID)
+		}
+
+		outputQueues = append(outputQueues, getProcInfoOKMsg.OutputQueues.ID)
+
+		processors = append(processors, flow_model.Processor{
+			ID:           getProcInfoOKMsg.ID,
+			Type:         getProcInfoOKMsg.Type,
+			InputQueues:  inputQueues,
+			OutputQueues: outputQueues,
+			Config:       nil,
+		})
+	}
+	return processors, nil
 }

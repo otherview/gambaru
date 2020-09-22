@@ -41,6 +41,12 @@ func (state *SiloManager) Receive(context actor.Context) {
 		_ = state.AddOutputQueue(msg.ProcessorID, msg.QueueID)
 		context.Respond(AddInputQueueOKMessage{})
 
+	case *GetProcessorsMessage:
+		processors := state.GetProcessors()
+		context.Respond(GetProcessorsOKMessage{
+			Processors: processors,
+		})
+
 	}
 
 }

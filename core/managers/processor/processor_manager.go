@@ -4,21 +4,25 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
+	"github.com/otherview/gambaru/core/models/queue_model"
+
 	"github.com/otherview/gambaru/core/models/flow_model"
 
 	interface_processor "github.com/otherview/gambaru/core/interfaces/processor"
 	interface_repository "github.com/otherview/gambaru/core/interfaces/repository"
 
 	"github.com/otherview/gambaru/core/sessions"
-
-	"github.com/AsynkronIT/protoactor-go/actor"
 )
 
 type ProcessorManager struct {
+	processorID   uuid.UUID
+	procType      string
 	processor     interface_processor.ProcessorInterface
 	savePoint     bool
-	inputQueues   []*actor.PID
-	outputQueue   *actor.PID
+	inputQueues   []queue_model.Queue
+	outputQueue   queue_model.Queue
 	stopChan      chan bool
 	repository    interface_repository.RepositoryInterface
 	executionTime time.Duration
@@ -70,14 +74,25 @@ func (state *ProcessorManager) StopProcessor() error {
 	return nil
 }
 
-func (state *ProcessorManager) AddInputQueue(queuePID *actor.PID) error {
+func (state *ProcessorManager) AddInputQueue(msg *AddInputQueue) error {
 
-	state.inputQueues = append(state.inputQueues, queuePID)
+	state.inputQueues = append(state.inputQueues, queue_model.Queue{
+		ID:      msg.QueueID,
+		ActorID: msg.QueuePID,
+	})
 	return nil
 }
 
-func (state *ProcessorManager) AddOutputQueue(queuePID *actor.PID) error {
+func (state *ProcessorManager) AddOutputQueue(msg *AddOutputQueue) error {
 
-	state.outputQueue = queuePID
+	state.outputQueue = queue_model.Queue{
+		ID:      msg.QueueID,
+		ActorID: msg.QueuePID,
+	}
 	return nil
+}
+
+func (state *ProcessorManager) GetProcessorInfo() (uuid.UUID, string, []queue_model.Queue, queue_model.Queue) {
+
+	return state.processorID, state.procType, state.inputQueues, state.outputQueue
 }

@@ -1,6 +1,7 @@
 package silo_manager
 
 import (
+	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/google/uuid"
 	interface_processor "github.com/otherview/gambaru/core/interfaces/processor"
 	interface_queue "github.com/otherview/gambaru/core/interfaces/queue"
@@ -43,3 +44,13 @@ type AddInputQueueMessage struct {
 	QueueID     uuid.UUID
 }
 type AddInputQueueOKMessage struct{}
+
+type GetProcessorsMessage struct{}
+type GetProcessorsOKMessage struct {
+	Processors map[uuid.UUID]*actor.PID
+}
+
+type GetQueuesMessage struct{}
+type GetQueuesOKMessage struct {
+	Queues map[uuid.UUID]*actor.PID
+}

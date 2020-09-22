@@ -116,3 +116,7 @@ func (state *SiloManager) AddOutputQueue(processorID uuid.UUID, queueID uuid.UUI
 	return nil
 
 }
+
+func (state *SiloManager) GetProcessors() map[uuid.UUID]*actor.PID {
+	return state.processors
+}

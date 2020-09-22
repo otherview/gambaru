@@ -1,6 +1,7 @@
 package _tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -49,4 +50,12 @@ func TestGeneratorAndLoggerProcessors(t *testing.T) {
 	if err != nil {
 		t.Errorf("error creating a queue, %v", queue)
 	}
+
+	outputJson, err := flow.SaveJson()
+	if err != nil {
+		t.Errorf("error exporting flow")
+	}
+
+	fmt.Printf("derp -> %v\n", outputJson)
+
 }
