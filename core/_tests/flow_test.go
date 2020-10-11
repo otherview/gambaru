@@ -56,6 +56,16 @@ func TestGeneratorAndLoggerProcessors(t *testing.T) {
 		t.Errorf("error exporting flow")
 	}
 
+	for _, proc := range outputJson.Processors {
+		if proc.ID == generatorProcessor.ID {
+			continue
+		}
+		if proc.ID == logProcessor.ID {
+			continue
+		}
+		t.Errorf("processor ID was not found, %v", proc)
+	}
+
 	fmt.Printf("derp -> %v\n", outputJson)
 
 }
